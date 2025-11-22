@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
+const companyRoutes = require("./routes/company.routes");
+const adminRoutes = require("./routes/admin.routes");
+const transportRoutes = require("./routes/transport.routes");
 
 const app = express();
 
@@ -10,6 +13,9 @@ app.use(express.json());
 app.get("/health", (req, res) => res.json({ ok: true }));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/companies", companyRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/transport", transportRoutes);
 
 app.use((err, req, res, next) => {
   const status = err.status || 500;
