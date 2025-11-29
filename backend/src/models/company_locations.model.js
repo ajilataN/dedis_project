@@ -20,4 +20,16 @@ async function listLocationsByCompanyId(company_id, executor = db) {
   return rows;
 }
 
-module.exports = { addCompanyLocation, listLocationsByCompanyId };
+async function isCompanyLocation(company_id, location_id, executor = db) {
+  const [rows] = await executor.query(
+    `SELECT 1 AS ok
+     FROM company_locations
+     WHERE company_id = ? AND location_id = ?
+     LIMIT 1`,
+    [company_id, location_id]
+  );
+  return !!rows[0];
+}
+
+module.exports = { addCompanyLocation, listLocationsByCompanyId, isCompanyLocation };
+

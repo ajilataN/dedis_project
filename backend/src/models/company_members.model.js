@@ -47,6 +47,26 @@ async function listPending(company_id, executor = db) {
   return rows;
 }
 
+async function listAllByCompany(company_id, executor = db) {
+  const [rows] = await executor.query(
+    `SELECT cm.company_id, cm.user_id, cm.role, cm.status, cm.requested_at, cm.approved_at,
+            u.name, u.surname, u.email
+     FROM company_members cm
+     JOIN users u ON u.id = cm.user_id
+     WHERE cm.company_id = ?
+     ORDER BY
+       CASE cm.status
+         WHEN 'PENDING' THEN 0
+         WHEN 'APPROVED' THEN 1
+         WHEN 'REJECTED' THEN 2
+         ELSE 3
+       END,
+       cm.requested_at ASC`,
+    [company_id]
+  );
+  return rows;
+}
+
 async function approveMembership(company_id, user_id, executor = db) {
   const [result] = await executor.query(
     `UPDATE company_members
@@ -84,6 +104,7 @@ module.exports = {
   findMembership,
   findByUserId,
   listPending,
+  listAllByCompany,
   approveMembership,
   rejectMembership,
   setRole,

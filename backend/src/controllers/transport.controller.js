@@ -32,11 +32,12 @@ async function listVehicles(req, res, next) {
 // route groups
 async function createRouteGroup(req, res, next) {
   try {
-    const { vehicle_id, name } = req.body;
+    const { vehicle_id, company_location_id, name } = req.body;
 
     const id = await transportService.createRouteGroup({
       companyId: req.companyId,
       vehicle_id: Number(vehicle_id),
+      company_location_id: Number(company_location_id),
       name,
     });
 

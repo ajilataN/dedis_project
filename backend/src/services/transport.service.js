@@ -5,6 +5,7 @@ const routeGroupModel = require("../models/route_group.model");
 const groupMemberModel = require("../models/group_member.model");
 const companyMembersModel = require("../models/company_members.model");
 const userModel = require("../models/user.model");
+const companyLocationsModel = require("../models/company_locations.model");
 
 // vehicles
 async function createVehicle({ companyId, name, license_plate, capacity }) {
@@ -42,9 +43,9 @@ async function listVehicles({ companyId }) {
 }
 
 // route groups
-async function createRouteGroup({ companyId, vehicle_id, name }) {
-  if (!vehicle_id || !name) {
-    const err = new Error("Missing vehicle_id or name");
+async function createRouteGroup({ companyId, vehicle_id, company_location_id, name }) {
+  if (!vehicle_id || !company_location_id || !name) {
+    const err = new Error("Missing vehicle_id, company_location_id or name");
     err.status = 400;
     throw err;
   }
@@ -56,10 +57,21 @@ async function createRouteGroup({ companyId, vehicle_id, name }) {
     throw err;
   }
 
+  const isCompanyLocation = await companyLocationsModel.isCompanyLocation(
+    companyId,
+    company_location_id
+  );
+  if (!isCompanyLocation) {
+    const err = new Error("Invalid company location");
+    err.status = 409;
+    throw err;
+  }
+
   try {
     const id = await routeGroupModel.createRouteGroup({
       company_id: companyId,
       vehicle_id,
+      company_location_id,
       name,
       active: true,
     });

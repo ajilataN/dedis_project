@@ -17,7 +17,8 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", { email, password });
       login(res.data);
-      nav("/dashboard");
+      if (res.data.membership?.role === "ADMIN") nav("/admin");
+        else nav("/employee");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.message || "Login failed");

@@ -1,4 +1,7 @@
 const companyMembersModel = require("../models/company_members.model");
+const companyModel = require("../models/company.model");
+const locationModel = require("../models/location.model");
+const companyLocationsModel = require("../models/company_locations.model");
 
 // list pending requests
 async function listPendingRequests({ companyId }) {
@@ -25,4 +28,41 @@ async function rejectRequest({ companyId, userId }) {
   }
 }
 
-module.exports = { listPendingRequests, approveRequest, rejectRequest };
+// get company locations
+async function getCompanyOverview({ companyId }) {
+  const company = await companyModel.findById(companyId);
+  if (!company) {
+    const err = new Error("Company not found");
+    err.status = 404;
+    throw err;
+  }
+
+  const locations = await companyLocationsModel.listLocationsByCompanyId(companyId);
+
+  return { company, locations };
+}
+
+// add additional location of the company
+async function addCompanyLocation({ companyId, location }) {
+  if (!location) {
+    const err = new Error("Missing location data");
+    err.status = 400;
+    throw err;
+  }
+
+  const locationId = await locationModel.createLocation(location);
+
+  await companyLocationsModel.addCompanyLocation({
+    company_id: companyId,
+    location_id: locationId,
+  });
+
+  return locationId;
+}
+
+// list employees
+async function listCompanyMembers({ companyId }) {
+  return companyMembersModel.listAllByCompany(companyId);
+}
+
+module.exports = { listPendingRequests, approveRequest, rejectRequest, getCompanyOverview, addCompanyLocation, listCompanyMembers, };
