@@ -5,9 +5,13 @@ import { AuthProvider } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import TransportPlan from "./pages/TransportPlan";
+import AdminRequests from "./pages/AdminRequests";
+import AdminTransport from "./pages/AdminTransport";
+
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -43,6 +47,24 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <ProtectedRoute>
                 <AdminDashboard />
               </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/requests"
+            element={
+              <AdminRoute>
+                <AdminRequests />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/transport"
+            element={
+              <AdminRoute>
+                <AdminTransport />
+              </AdminRoute>
             }
           />
 

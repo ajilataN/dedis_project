@@ -11,7 +11,7 @@ async function createRouteGroup({ company_id, vehicle_id, company_location_id, n
 
 async function listByCompanyId(company_id, executor = db) {
   const [rows] = await executor.query(
-    `SELECT rg.id, rg.company_id, rg.vehicle_id, rg.name, rg.active, rg.created_at, rg.company_location_id
+    `SELECT rg.id, rg.company_id, rg.vehicle_id, rg.name, rg.active, rg.created_at, rg.company_location_id,
             v.name AS vehicle_name, v.license_plate, v.capacity
      FROM route_groups rg
      JOIN vehicles v ON v.id = rg.vehicle_id
