@@ -58,4 +58,31 @@ async function removeMember(group_id, user_id, executor = db) {
   return result.affectedRows;
 }
 
-module.exports = { addMember, listMembers, countMembers, clearDriver, setDriver, removeMember };
+async function findUserGroupPlan(user_id, executor = db) {
+  const [rows] = await executor.query(
+    `SELECT
+        rg.id AS group_id,
+        rg.name AS group_name,
+        rg.company_id,
+        rg.company_location_id,
+        v.id AS vehicle_id,
+        v.name AS vehicle_name,
+        v.license_plate,
+        v.capacity,
+        cl.country AS company_country,
+        cl.city AS company_city,
+        cl.postal_code AS company_postal_code,
+        cl.street AS company_street,
+        cl.street_number AS company_street_number
+     FROM group_members gm
+     JOIN route_groups rg ON rg.id = gm.group_id
+     JOIN vehicles v ON v.id = rg.vehicle_id
+     LEFT JOIN locations cl ON cl.id = rg.company_location_id
+     WHERE gm.user_id = ?
+     LIMIT 1`,
+    [user_id]
+  );
+  return rows[0] || null;
+}
+
+module.exports = { addMember, listMembers, countMembers, clearDriver, setDriver, removeMember,findUserGroupPlan };

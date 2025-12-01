@@ -84,4 +84,15 @@ async function listMembers(req, res, next) {
   }
 }
 
-module.exports = { listPending, approve, reject, companyOverview, addCompanyLocation, listMembers, };
+async function listUnassignedEmployees(req, res, next) {
+  try {
+    const employees = await adminService.listApprovedUnassignedEmployees({
+      companyId: req.companyId,
+    });
+    res.json({ employees });
+  } catch (e) {
+    next(e);
+  }
+}
+
+module.exports = { listPending, approve, reject, companyOverview, addCompanyLocation, listMembers, listUnassignedEmployees};

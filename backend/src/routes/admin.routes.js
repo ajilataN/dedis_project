@@ -8,6 +8,7 @@ const {
   companyOverview,
   addCompanyLocation,
   listMembers,
+  listUnassignedEmployees,
 } = require("../controllers/admin.controller");
 
 const router = express.Router();
@@ -30,5 +31,8 @@ router.post("/requests/:userId/approve", approve);
 
 // Reject request
 router.post("/requests/:userId/reject", reject);
+
+// get employees not assigned in any group
+router.get("/employees/unassigned", listUnassignedEmployees);
 
 module.exports = router;

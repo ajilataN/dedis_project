@@ -39,4 +39,13 @@ async function me(req, res, next) {
   }
 }
 
-module.exports = { search, join, me };
+async function getUserTransportPlan(req, res, next) {
+  try {
+    const data = await companyService.getUserTransportPlan({ userId: req.user.id });
+    res.json(data);
+  } catch (e) {
+    next(e);
+  }
+}
+
+module.exports = { search, join, me, getUserTransportPlan, };

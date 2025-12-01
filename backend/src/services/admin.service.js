@@ -65,4 +65,9 @@ async function listCompanyMembers({ companyId }) {
   return companyMembersModel.listAllByCompany(companyId);
 }
 
-module.exports = { listPendingRequests, approveRequest, rejectRequest, getCompanyOverview, addCompanyLocation, listCompanyMembers, };
+// list employees that are not added to a route group yet
+async function listApprovedUnassignedEmployees({ companyId }) {
+  return companyMembersModel.listApprovedUnassignedEmployees(companyId);
+}
+
+module.exports = { listPendingRequests, approveRequest, rejectRequest, getCompanyOverview, addCompanyLocation, listCompanyMembers, listApprovedUnassignedEmployees };

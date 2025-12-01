@@ -1,5 +1,6 @@
 const companyModel = require("../models/company.model");
 const companyMembersModel = require("../models/company_members.model");
+const groupMemberModel = require("../models/group_member.model");
 
 // search company by name
 async function searchCompanies({ query, limit = 10 }) {
@@ -58,4 +59,56 @@ async function getMyMembership({ userId }) {
   return membership || null;
 }
 
-module.exports = { searchCompanies, requestJoinCompany, getMyMembership };
+// get user's transport plan
+async function getUserTransportPlan({ userId }) {
+  const membership = await companyMembersModel.findByUserId(userId);
+
+  // not linked to company
+  if (!membership) {
+    return { membership: null, plan: null };
+  }
+
+  // not approved -> no plan
+  if (membership.status !== "APPROVED") {
+    return { membership, plan: null };
+  }
+
+  // approved -> find group
+  const planHeader = await groupMemberModel.findUserGroupPlan(userId);
+  if (!planHeader) {
+    return { membership, plan: { status: "NO_GROUP" } };
+  }
+
+  const members = await groupMemberModel.listMembers(planHeader.group_id);
+
+  return {
+    membership,
+    plan: {
+      status: "ASSIGNED",
+      group: {
+        id: planHeader.group_id,
+        name: planHeader.group_name,
+        company_location: planHeader.company_location_id
+          ? {
+              id: planHeader.company_location_id,
+              country: planHeader.company_country,
+              city: planHeader.company_city,
+              postal_code: planHeader.company_postal_code,
+              street: planHeader.company_street,
+              street_number: planHeader.company_street_number,
+            }
+          : null,
+      },
+      vehicle: {
+        id: planHeader.vehicle_id,
+        name: planHeader.vehicle_name,
+        license_plate: planHeader.license_plate,
+        capacity: planHeader.capacity,
+      },
+      members,
+    },
+  };
+}
+
+
+module.exports = { searchCompanies, requestJoinCompany, getMyMembership, getUserTransportPlan };

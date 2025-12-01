@@ -99,6 +99,27 @@ async function setRole(company_id, user_id, role, executor = db) {
   return result.affectedRows;
 }
 
+async function listApprovedUnassignedEmployees(company_id, executor = db) {
+  const [rows] = await executor.query(
+    `SELECT u.id AS user_id, u.name, u.surname, u.email, u.has_drivers_licence
+     FROM company_members cm
+     JOIN users u ON u.id = cm.user_id
+     WHERE cm.company_id = ?
+       AND cm.status = 'APPROVED'
+       AND cm.role = 'EMPLOYEE'
+       AND NOT EXISTS (
+         SELECT 1
+         FROM group_members gm
+         JOIN route_groups rg ON rg.id = gm.group_id
+         WHERE gm.user_id = cm.user_id
+           AND rg.company_id = cm.company_id
+       )
+     ORDER BY u.surname ASC, u.name ASC`,
+    [company_id]
+  );
+  return rows;
+}
+
 module.exports = {
   createMembership,
   findMembership,
@@ -108,4 +129,5 @@ module.exports = {
   approveMembership,
   rejectMembership,
   setRole,
+  listApprovedUnassignedEmployees
 };

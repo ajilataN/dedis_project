@@ -1,6 +1,6 @@
 const express = require("express");
 const { authRequired } = require("../middlewares/auth.middleware");
-const { search, join, me } = require("../controllers/company.controller");
+const { search, join, me, getUserTransportPlan } = require("../controllers/company.controller");
 
 const router = express.Router();
 
@@ -12,5 +12,8 @@ router.post("/:companyId/join", authRequired, join);
 
 // Get my membership
 router.get("/me", authRequired, me);
+
+// Get user's transport plan
+router.get("/transport-plan", authRequired, getUserTransportPlan)
 
 module.exports = router;

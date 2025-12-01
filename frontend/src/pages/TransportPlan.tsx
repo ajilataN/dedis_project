@@ -1,39 +1,119 @@
+import { useEffect, useState } from "react";
+import { api } from "../api/client";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+
+type GroupMember = {
+  user_id: number;
+  name: string;
+  surname: string;
+  email: string;
+  pickup_order: number;
+  is_driver: boolean | number;
+};
+
+type TransportPlanResponse = {
+  membership: {
+    company_id: number;
+    role: "ADMIN" | "EMPLOYEE";
+    status: "PENDING" | "APPROVED" | "REJECTED";
+  } | null;
+
+  plan: null | {
+    status: "NO_GROUP" | "ASSIGNED";
+    group?: {
+      id: number;
+      name: string;
+      company_location: null | {
+        country: string;
+        city: string;
+        postal_code: string;
+        street: string;
+        street_number: string;
+      };
+    };
+    vehicle?: {
+      name: string;
+      license_plate: string;
+      capacity: number;
+    };
+    members?: GroupMember[];
+  };
+};
 
 export default function TransportPlan() {
-  const { membership } = useAuth();
+  const [data, setData] = useState<TransportPlanResponse | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api
+      .get("/companies/transport-plan")
+      .then((res) => setData(res.data))
+      .catch(() => setError("Failed to load transport plan"));
+  }, []);
 
   return (
     <div style={{ maxWidth: 760, margin: "40px auto" }}>
-      <h2>Transport Plan</h2>
+      <h2>My Transport Plan</h2>
       <p>
         <Link to="/employee">← Back to Dashboard</Link>
       </p>
 
-      {!membership && (
-        <p>You are not linked to a company yet. Go to Dashboard and request to join your company.</p>
+      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {!data && !error && <p>Loading...</p>}
+
+      {/* Not in a company */}
+      {data && !data.membership && (
+        <p>You are not linked to a company yet.</p>
       )}
 
-      {membership?.status === "PENDING" && (
-        <p>Your request is <b>PENDING</b>. Wait for the admin to approve you.</p>
+      {/* Pending / rejected */}
+      {data?.membership?.status === "PENDING" && (
+        <p>Your request to join the company is <b>PENDING</b>.</p>
       )}
 
-      {membership?.status === "REJECTED" && (
-        <p>Your request was <b>REJECTED</b>. You can try joining a different company.</p>
+      {data?.membership?.status === "REJECTED" && (
+        <p>Your request to join the company was <b>REJECTED</b>.</p>
       )}
 
-      {membership?.status === "APPROVED" && (
+      {/* Approved but no group */}
+      {data?.plan?.status === "NO_GROUP" && (
+        <p>
+          You are approved in the company, but you are not assigned to a
+          transport group yet.
+        </p>
+      )}
+
+      {/* Assigned to group */}
+      {data?.plan?.status === "ASSIGNED" && data.plan.group && data.plan.vehicle && (
         <>
-          <p>You are <b>APPROVED</b> in company_id={membership.company_id}.</p>
+          <h3>{data.plan.group.name}</h3>
+
+          {data.plan.group.company_location && (
+            <p>
+              Company location:{" "}
+              {data.plan.group.company_location.city},{" "}
+              {data.plan.group.company_location.street}{" "}
+              {data.plan.group.company_location.street_number}
+            </p>
+          )}
+
           <p>
-            Route group details are not available yet (next step). Soon this page will show:
+            Vehicle:{" "}
+            <b>
+              {data.plan.vehicle.name} (
+              {data.plan.vehicle.license_plate})
+            </b>{" "}
+            — capacity {data.plan.vehicle.capacity}
           </p>
+
+          <h4>Pickup order</h4>
           <ul>
-            <li>Your route group</li>
-            <li>Vehicle</li>
-            <li>Driver</li>
-            <li>Pickup order + group members</li>
+            {data.plan.members?.map((m) => (
+              <li key={m.user_id}>
+                #{m.pickup_order} — {m.name} {m.surname} ({m.email}){" "}
+                {m.is_driver ? <b>DRIVER</b> : null}
+              </li>
+            ))}
           </ul>
         </>
       )}

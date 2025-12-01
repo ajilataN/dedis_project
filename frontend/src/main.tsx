@@ -12,6 +12,7 @@ import TransportPlan from "./pages/TransportPlan";
 import AdminRequests from "./pages/AdminRequests";
 import AdminTransport from "./pages/AdminTransport";
 
+import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
