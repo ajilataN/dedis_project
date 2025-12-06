@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 type LocationForm = {
@@ -20,13 +20,13 @@ type EmployeeRegisterForm = {
   email: string;
   password: string;
   has_drivers_licence: boolean;
-  location: LocationForm; // employee home location
+  location: LocationForm;
 };
 
 type CompanyAdminRegisterForm = EmployeeRegisterForm & {
   company: {
     name: string;
-    location: LocationForm; // company main location
+    location: LocationForm;
   };
 };
 
@@ -67,20 +67,20 @@ export default function Register() {
       return;
     }
 
-    // company name
     if (name === "company.name") {
       setForm((p) => ({ ...p, company: { ...p.company, name: value } }));
       return;
     }
 
-    // company location fields
     if (name.startsWith("company.location.")) {
       const key = name.split(".")[2] as keyof LocationForm;
-      setForm((p) => ({ ...p, company: { ...p.company, location: { ...p.company.location, [key]: value } } }));
+      setForm((p) => ({
+        ...p,
+        company: { ...p.company, location: { ...p.company.location, [key]: value } },
+      }));
       return;
     }
 
-    // regular fields
     setForm((p) => ({ ...p, [name]: type === "checkbox" ? checked : value } as CompanyAdminRegisterForm));
   };
 
@@ -105,7 +105,6 @@ export default function Register() {
         return;
       }
 
-      // COMPANY_ADMIN
       const payload: CompanyAdminRegisterForm = form;
       const res = await api.post("/auth/register-company", payload);
       login(res.data);
@@ -120,137 +119,264 @@ export default function Register() {
   };
 
   return (
-    <div style={{ maxWidth: 560, margin: "40px auto" }}>
-      <h2>Register</h2>
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-12 col-md-10 col-lg-8">
+          <div className="card shadow-sm">
+            <div className="card-body p-4">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h2 className="h4 mb-0">Create account</h2>
+                <Link to="/login" className="text-decoration-none">
+                  Back to login
+                </Link>
+              </div>
 
-      {/* Mode switch */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <button
-          type="button"
-          onClick={() => setMode("EMPLOYEE")}
-          style={{
-            padding: "8px 12px",
-            border: "1px solid #ccc",
-            background: mode === "EMPLOYEE" ? "#eaeaea" : "white",
-            cursor: "pointer",
-          }}
-        >
-          Employee
-        </button>
+              {/* Mode switch */}
+              <ul className="nav nav-pills mb-4">
+                <li className="nav-item">
+                  <button
+                    type="button"
+                    className={`nav-link ${mode === "EMPLOYEE" ? "active" : ""}`}
+                    onClick={() => setMode("EMPLOYEE")}
+                  >
+                    Employee
+                  </button>
+                </li>
+                <li className="nav-item">
+                  <button
+                    type="button"
+                    className={`nav-link ${mode === "COMPANY_ADMIN" ? "active" : ""}`}
+                    onClick={() => setMode("COMPANY_ADMIN")}
+                  >
+                    Company admin (create company)
+                  </button>
+                </li>
+              </ul>
 
-        <button
-          type="button"
-          onClick={() => setMode("COMPANY_ADMIN")}
-          style={{
-            padding: "8px 12px",
-            border: "1px solid #ccc",
-            background: mode === "COMPANY_ADMIN" ? "#eaeaea" : "white",
-            cursor: "pointer",
-          }}
-        >
-          Company admin (create company)
-        </button>
+              {error && <div className="alert alert-danger py-2">{error}</div>}
+
+              <form onSubmit={onSubmit}>
+                <div className="mb-3">
+                  <h5 className="mb-2">Account</h5>
+
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label">Name</label>
+                      <input className="form-control" name="name" value={form.name} onChange={onChange} required />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Surname</label>
+                      <input className="form-control" name="surname" value={form.surname} onChange={onChange} required />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Email</label>
+                      <input
+                        className="form-control"
+                        name="email"
+                        type="email"
+                        value={form.email}
+                        onChange={onChange}
+                        required
+                        autoComplete="email"
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Password</label>
+                      <input
+                        className="form-control"
+                        name="password"
+                        type="password"
+                        value={form.password}
+                        onChange={onChange}
+                        required
+                        autoComplete="new-password"
+                      />
+                    </div>
+
+                    <div className="col-12">
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          id="hasDrivers"
+                          name="has_drivers_licence"
+                          type="checkbox"
+                          checked={form.has_drivers_licence}
+                          onChange={onChange}
+                        />
+                        <label className="form-check-label" htmlFor="hasDrivers">
+                          Has driver’s licence
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <hr className="my-4" />
+
+                <div className="mb-3">
+                  <h5 className="mb-2">Your location</h5>
+
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label">Country</label>
+                      <input
+                        className="form-control"
+                        name="location.country"
+                        value={form.location.country}
+                        onChange={onChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">City</label>
+                      <input
+                        className="form-control"
+                        name="location.city"
+                        value={form.location.city}
+                        onChange={onChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-4">
+                      <label className="form-label">Postal code</label>
+                      <input
+                        className="form-control"
+                        name="location.postal_code"
+                        value={form.location.postal_code}
+                        onChange={onChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-5">
+                      <label className="form-label">Street</label>
+                      <input
+                        className="form-control"
+                        name="location.street"
+                        value={form.location.street}
+                        onChange={onChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-3">
+                      <label className="form-label">Street no.</label>
+                      <input
+                        className="form-control"
+                        name="location.street_number"
+                        value={form.location.street_number}
+                        onChange={onChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {mode === "COMPANY_ADMIN" && (
+                  <>
+                    <hr className="my-4" />
+
+                    <div className="mb-3">
+                      <h5 className="mb-2">Company</h5>
+
+                      <div className="row g-3">
+                        <div className="col-12">
+                          <label className="form-label">Company name</label>
+                          <input
+                            className="form-control"
+                            name="company.name"
+                            value={form.company.name}
+                            onChange={onChange}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mt-3">
+                        <h6 className="mb-2">Company main address (HQ)</h6>
+
+                        <div className="row g-3">
+                          <div className="col-md-6">
+                            <label className="form-label">Country</label>
+                            <input
+                              className="form-control"
+                              name="company.location.country"
+                              value={form.company.location.country}
+                              onChange={onChange}
+                              required
+                            />
+                          </div>
+
+                          <div className="col-md-6">
+                            <label className="form-label">City</label>
+                            <input
+                              className="form-control"
+                              name="company.location.city"
+                              value={form.company.location.city}
+                              onChange={onChange}
+                              required
+                            />
+                          </div>
+
+                          <div className="col-md-4">
+                            <label className="form-label">Postal code</label>
+                            <input
+                              className="form-control"
+                              name="company.location.postal_code"
+                              value={form.company.location.postal_code}
+                              onChange={onChange}
+                              required
+                            />
+                          </div>
+
+                          <div className="col-md-5">
+                            <label className="form-label">Street</label>
+                            <input
+                              className="form-control"
+                              name="company.location.street"
+                              value={form.company.location.street}
+                              onChange={onChange}
+                              required
+                            />
+                          </div>
+
+                          <div className="col-md-3">
+                            <label className="form-label">Street no.</label>
+                            <input
+                              className="form-control"
+                              name="company.location.street_number"
+                              value={form.company.location.street_number}
+                              onChange={onChange}
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <button className="btn btn-primary w-100 mt-2" type="submit">
+                  Create account
+                </button>
+
+                <p className="text-center text-muted mt-3 mb-0">
+                  Already have an account? <Link to="/login">Login</Link>
+                </p>
+              </form>
+            </div>
+          </div>
+
+          <p className="text-center text-muted small mt-3 mb-0">
+            Employee Transport Platform
+          </p>
+        </div>
       </div>
-
-      <form onSubmit={onSubmit}>
-        <h4>Account</h4>
-        <input name="name" placeholder="Name" value={form.name} onChange={onChange} />
-        <br />
-        <input name="surname" placeholder="Surname" value={form.surname} onChange={onChange} />
-        <br />
-        <input name="email" placeholder="Email" value={form.email} onChange={onChange} />
-        <br />
-        <input name="password" type="password" placeholder="Password" value={form.password} onChange={onChange} />
-        <br />
-
-        <label>
-          <input
-            name="has_drivers_licence"
-            type="checkbox"
-            checked={form.has_drivers_licence}
-            onChange={onChange}
-          />
-          Has driver’s licence
-        </label>
-
-        <h4>Your location</h4>
-        <input name="location.country" placeholder="Country" value={form.location.country} onChange={onChange} />
-        <br />
-        <input name="location.city" placeholder="City" value={form.location.city} onChange={onChange} />
-        <br />
-        <input
-          name="location.postal_code"
-          placeholder="Postal code"
-          value={form.location.postal_code}
-          onChange={onChange}
-        />
-        <br />
-        <input name="location.street" placeholder="Street" value={form.location.street} onChange={onChange} />
-        <br />
-        <input
-          name="location.street_number"
-          placeholder="Street number"
-          value={form.location.street_number}
-          onChange={onChange}
-        />
-        <br />
-
-        {mode === "COMPANY_ADMIN" && (
-          <>
-            <h4>Company</h4>
-            <input
-              name="company.name"
-              placeholder="Company name"
-              value={form.company.name}
-              onChange={onChange}
-            />
-            <br />
-
-            <h4>Company main address (HQ)</h4>
-            <input
-              name="company.location.country"
-              placeholder="Country"
-              value={form.company.location.country}
-              onChange={onChange}
-            />
-            <br />
-            <input
-              name="company.location.city"
-              placeholder="City"
-              value={form.company.location.city}
-              onChange={onChange}
-            />
-            <br />
-            <input
-              name="company.location.postal_code"
-              placeholder="Postal code"
-              value={form.company.location.postal_code}
-              onChange={onChange}
-            />
-            <br />
-            <input
-              name="company.location.street"
-              placeholder="Street"
-              value={form.company.location.street}
-              onChange={onChange}
-            />
-            <br />
-            <input
-              name="company.location.street_number"
-              placeholder="Street number"
-              value={form.company.location.street_number}
-              onChange={onChange}
-            />
-            <br />
-          </>
-        )}
-
-        <button type="submit" style={{ marginTop: 10 }}>
-          Create account
-        </button>
-
-        {error && <p style={{ color: "crimson" }}>{error}</p>}
-      </form>
     </div>
   );
 }

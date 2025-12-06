@@ -14,6 +14,7 @@ export type Membership =
   | null
   | {
       company_id: number;
+      company_name?: string;
       user_id: number;
       role: "ADMIN" | "EMPLOYEE";
       status: "PENDING" | "APPROVED" | "REJECTED";

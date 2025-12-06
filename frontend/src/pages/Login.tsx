@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { api } from "../api/client.ts";
-import { useAuth } from "../context/AuthContext.tsx";
+import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
@@ -17,8 +17,9 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", { email, password });
       login(res.data);
+
       if (res.data.membership?.role === "ADMIN") nav("/admin");
-        else nav("/employee");
+      else nav("/employee");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.message || "Login failed");
@@ -29,19 +30,59 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto" }}>
-      <h2>Login</h2>
-      <form onSubmit={onSubmit}>
-        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <br />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <br />
-        <button type="submit">Login</button>
-        {error && <p style={{ color: "crimson" }}>{error}</p>}
-      </form>
-      <p>
-        No account? <Link to="/register">Register</Link>
-      </p>
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-12 col-sm-10 col-md-7 col-lg-6 col-xl-5">
+          <div className="card shadow">
+            <div className="card-body p-5">
+              <h2 className="h4 text-center mb-4">Login</h2>
+
+              {error && <div className="alert alert-danger py-2">{error}</div>}
+
+              <form onSubmit={onSubmit}>
+                <div className="mb-3">
+                  <label className="form-label">Email</label>
+                  <input
+                    className="form-control"
+                    type="email"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Password</label>
+                  <input
+                    className="form-control"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                  />
+                </div>
+
+                <button className="btn btn-primary w-100" type="submit">
+                  Sign in
+                </button>
+              </form>
+
+              <div className="text-center mt-3">
+                <span className="text-muted">No account?</span>{" "}
+                <Link to="/register">Register</Link>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-center text-muted small mt-3 mb-0">
+            Employee Transport Platform
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
