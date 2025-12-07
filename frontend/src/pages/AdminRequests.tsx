@@ -56,49 +56,165 @@ export default function AdminRequests() {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "40px auto" }}>
-      <h2>Requests & Members</h2>
-      <p>
-        <Link to="/admin">← Back to Admin Dashboard</Link>
-      </p>
+    <div className="container py-4" style={{ maxWidth: 1100 }}>
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <div>
+          <h2 className="mb-1">Requests & Members</h2>
+          <Link to="/admin" className="text-decoration-none">
+            ← Back to Admin Dashboard
+          </Link>
+        </div>
+      </div>
 
-      {msg && <p style={{ color: msg.toLowerCase().includes("fail") ? "crimson" : "green" }}>{msg}</p>}
+      {/* Message */}
+      {msg && (
+        <div className={`alert ${msg.toLowerCase().includes("fail") ? "alert-danger" : "alert-success"} py-2`}>
+          {msg}
+        </div>
+      )}
 
-      <hr />
-
-      <h3>Pending requests</h3>
-      {pending.length === 0 ? (
-        <p>No pending requests.</p>
-      ) : (
-        <ul>
-          {pending.map((m) => (
-            <li key={m.user_id} style={{ marginBottom: 10 }}>
-              <b>{m.name} {m.surname}</b> ({m.email})
-              <div style={{ marginTop: 6 }}>
-                <button onClick={() => approve(m.user_id)}>Approve</button>
-                <button onClick={() => reject(m.user_id)} style={{ marginLeft: 8 }}>
-                  Reject
-                </button>
+      {/* Summary */}
+      <div className="row g-3 mb-4">
+        <div className="col-12 col-md-4">
+          <div className="card shadow-sm">
+            <div className="card-body d-flex justify-content-between align-items-center">
+              <div>
+                <div className="text-muted small">Pending</div>
+                <div className="h4 mb-0">{pending.length}</div>
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
+              <span className="badge bg-warning text-dark">Needs review</span>
+            </div>
+          </div>
+        </div>
 
-      <hr />
+        <div className="col-12 col-md-4">
+          <div className="card shadow-sm">
+            <div className="card-body d-flex justify-content-between align-items-center">
+              <div>
+                <div className="text-muted small">Approved</div>
+                <div className="h4 mb-0">{approved.length}</div>
+              </div>
+              <span className="badge bg-success">Active</span>
+            </div>
+          </div>
+        </div>
 
-      <h3>Approved members</h3>
-      {approved.length === 0 ? (
-        <p>No approved employees yet.</p>
-      ) : (
-        <ul>
-          {approved.map((m) => (
-            <li key={m.user_id}>
-              {m.name} {m.surname} — {m.email} — <b>{m.role}</b>
-            </li>
-          ))}
-        </ul>
-      )}
+        <div className="col-12 col-md-4">
+          <div className="card shadow-sm">
+            <div className="card-body d-flex justify-content-between align-items-center">
+              <div>
+                <div className="text-muted small">Total records</div>
+                <div className="h4 mb-0">{members.length}</div>
+              </div>
+              <span className="badge bg-dark">Company</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Pending */}
+      <div className="card shadow-sm mb-4">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5 className="card-title mb-0">Pending requests</h5>
+            <span className="badge bg-warning text-dark">{pending.length}</span>
+          </div>
+
+          {pending.length === 0 ? (
+            <div className="alert alert-info mb-0">No pending requests.</div>
+          ) : (
+            <div className="table-responsive">
+              <table className="table table-striped table-hover align-middle mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th style={{ width: 160 }}>Requested</th>
+                    <th style={{ width: 220 }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pending.map((m) => (
+                    <tr key={m.user_id}>
+                      <td className="fw-semibold">
+                        {m.name} {m.surname}
+                      </td>
+                      <td className="text-muted">{m.email}</td>
+                      <td className="text-muted small">
+                        {new Date(m.requested_at).toLocaleString()}
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-success me-2"
+                          onClick={() => approve(m.user_id)}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => reject(m.user_id)}
+                        >
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className="form-text mt-2">
+            Approved employees will appear in the list below and can be assigned to groups.
+          </div>
+        </div>
+      </div>
+
+      {/* Approved */}
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5 className="card-title mb-0">Approved members</h5>
+            <span className="badge bg-success">{approved.length}</span>
+          </div>
+
+          {approved.length === 0 ? (
+            <div className="alert alert-info mb-0">No approved employees yet.</div>
+          ) : (
+            <div className="table-responsive">
+              <table className="table table-striped table-hover align-middle mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th style={{ width: 120 }}>Role</th>
+                    <th style={{ width: 180 }}>Approved at</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {approved.map((m) => (
+                    <tr key={m.user_id}>
+                      <td className="fw-semibold">
+                        {m.name} {m.surname}
+                      </td>
+                      <td className="text-muted">{m.email}</td>
+                      <td>
+                        <span className={`badge ${m.role === "ADMIN" ? "bg-dark" : "bg-secondary"}`}>
+                          {m.role}
+                        </span>
+                      </td>
+                      <td className="text-muted small">
+                        {m.approved_at ? new Date(m.approved_at).toLocaleString() : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import TransportPlan from "./pages/TransportPlan";
 import AdminRequests from "./pages/AdminRequests";
 import AdminTransport from "./pages/AdminTransport";
+import Header from "./components/Header";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
@@ -19,6 +20,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AuthProvider>
       <BrowserRouter>
+      <Header />
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />

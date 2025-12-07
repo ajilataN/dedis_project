@@ -53,11 +53,10 @@ export default function AdminTransport() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [groups, setGroups] = useState<RouteGroup[]>([]);
   const [locations, setLocations] = useState<CompanyLocation[]>([]);
-  const [msg, setMsg] = useState("");
-
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [msg, setMsg] = useState("");
 
   const [vehicleForm, setVehicleForm] = useState({
     name: "",
@@ -82,7 +81,6 @@ export default function AdminTransport() {
       api.get("/transport/vehicles"),
       api.get("/transport/route-groups"),
       api.get("/admin/company"),
-      // use unassigned list if you implemented it; fallback to /admin/employees if not
       api.get("/admin/employees/unassigned").catch(() => api.get("/admin/employees")),
     ]);
 
@@ -94,18 +92,16 @@ export default function AdminTransport() {
 
   useEffect(() => {
     load().catch(() => setMsg("Failed to load transport data"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const createVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMsg("");
     try {
       await api.post("/transport/vehicles", vehicleForm);
       setVehicleForm({ name: "", license_plate: "", capacity: 4 });
       await load();
       setMsg("Vehicle created");
-    } catch (err: unknown) {
+    } catch (err) {
       if (axios.isAxiosError(err)) setMsg(err.response?.data?.message || "Create vehicle failed");
       else setMsg("Create vehicle failed");
     }
@@ -113,7 +109,6 @@ export default function AdminTransport() {
 
   const createGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMsg("");
     try {
       await api.post("/transport/route-groups", {
         name: groupForm.name,
@@ -123,7 +118,7 @@ export default function AdminTransport() {
       setGroupForm({ name: "", vehicle_id: "", company_location_id: "" });
       await load();
       setMsg("Route group created");
-    } catch (err: unknown) {
+    } catch (err) {
       if (axios.isAxiosError(err)) setMsg(err.response?.data?.message || "Create group failed");
       else setMsg("Create group failed");
     }
@@ -136,37 +131,29 @@ export default function AdminTransport() {
 
   const addMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedGroupId) return;
-
-    setMsg("");
     try {
       await api.post(`/transport/route-groups/${selectedGroupId}/members`, {
         user_id: Number(assignForm.user_id),
         pickup_order: Number(assignForm.pickup_order),
-        is_driver: !!assignForm.is_driver,
+        is_driver: assignForm.is_driver,
       });
-
       setAssignForm({ user_id: "", pickup_order: 1, is_driver: false });
-
       await loadGroupMembers(Number(selectedGroupId));
-      await load(); // refresh employees list (unassigned shrinks)
+      await load();
       setMsg("Member added");
-    } catch (err: unknown) {
+    } catch (err) {
       if (axios.isAxiosError(err)) setMsg(err.response?.data?.message || "Add member failed");
       else setMsg("Add member failed");
     }
   };
 
   const removeMember = async (userId: number) => {
-    if (!selectedGroupId) return;
-
-    setMsg("");
     try {
       await api.delete(`/transport/route-groups/${selectedGroupId}/members/${userId}`);
       await loadGroupMembers(Number(selectedGroupId));
-      await load(); // refresh unassigned list
+      await load();
       setMsg("Member removed");
-    } catch (err: unknown) {
+    } catch (err) {
       if (axios.isAxiosError(err)) setMsg(err.response?.data?.message || "Remove member failed");
       else setMsg("Remove member failed");
     }
@@ -175,206 +162,198 @@ export default function AdminTransport() {
   const selectedGroup = groups.find((g) => String(g.id) === selectedGroupId);
 
   return (
-    <div style={{ maxWidth: 900, margin: "40px auto" }}>
-      <h2>Vehicles & Route Groups</h2>
-      <p>
+    <div className="container py-4" style={{ maxWidth: 1200 }}>
+      <div className="mb-3">
+        <h2>Transport Management</h2>
         <Link to="/admin">← Back to Admin Dashboard</Link>
-      </p>
+      </div>
 
-      {msg && <p style={{ color: msg.toLowerCase().includes("fail") ? "crimson" : "green" }}>{msg}</p>}
-
-      <hr />
-
-      <h3>Create vehicle</h3>
-      <form onSubmit={createVehicle}>
-        <input
-          placeholder="Name (e.g. Van A)"
-          value={vehicleForm.name}
-          onChange={(e) => setVehicleForm((p) => ({ ...p, name: e.target.value }))}
-        />
-        <br />
-        <input
-          placeholder="License plate"
-          value={vehicleForm.license_plate}
-          onChange={(e) => setVehicleForm((p) => ({ ...p, license_plate: e.target.value }))}
-        />
-        <br />
-        <input
-          type="number"
-          placeholder="Capacity"
-          value={vehicleForm.capacity}
-          onChange={(e) => setVehicleForm((p) => ({ ...p, capacity: Number(e.target.value) }))}
-        />
-        <br />
-        <button type="submit">Create vehicle</button>
-      </form>
-
-      <h4>Vehicles</h4>
-      {vehicles.length === 0 ? (
-        <p>No vehicles.</p>
-      ) : (
-        <ul>
-          {vehicles.map((v) => (
-            <li key={v.id}>
-              {v.name} — {v.license_plate} — capacity {v.capacity}
-            </li>
-          ))}
-        </ul>
+      {msg && (
+        <div className={`alert ${msg.includes("failed") ? "alert-danger" : "alert-success"}`}>
+          {msg}
+        </div>
       )}
 
-      <hr />
+      {/* Vehicles */}
+      <div className="card shadow-sm mb-4">
+        <div className="card-body">
+          <h5 className="card-title">Vehicles</h5>
 
-      <h3>Create route group</h3>
-      <form onSubmit={createGroup}>
-        <input
-          placeholder="Group name (e.g. Morning Route)"
-          value={groupForm.name}
-          onChange={(e) => setGroupForm((p) => ({ ...p, name: e.target.value }))}
-        />
-        <br />
-
-        <select
-          value={groupForm.vehicle_id}
-          onChange={(e) => setGroupForm((p) => ({ ...p, vehicle_id: e.target.value }))}
-        >
-          <option value="">Select vehicle</option>
-          {vehicles.map((v) => (
-            <option key={v.id} value={String(v.id)}>
-              {v.name} ({v.license_plate}) cap={v.capacity}
-            </option>
-          ))}
-        </select>
-        <br />
-
-        <select
-          value={groupForm.company_location_id}
-          onChange={(e) => setGroupForm((p) => ({ ...p, company_location_id: e.target.value }))}
-        >
-          <option value="">Select company location</option>
-          {locations.map((l) => (
-            <option key={l.id} value={String(l.id)}>
-              {l.city}, {l.street} {l.street_number}
-            </option>
-          ))}
-        </select>
-        <br />
-
-        <button type="submit">Create group</button>
-      </form>
-
-      <h4>Route groups</h4>
-      {groups.length === 0 ? (
-        <p>No groups.</p>
-      ) : (
-        <ul>
-          {groups.map((g) => (
-            <li key={g.id}>
-              <b>{g.name}</b> — vehicle: {g.vehicle_name} ({g.license_plate}) — location_id:{" "}
-              {g.company_location_id ?? "N/A"}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <hr />
-
-      <h3>Manage group members</h3>
-
-      <select
-        value={selectedGroupId}
-        onChange={async (e) => {
-          const v = e.target.value;
-          setSelectedGroupId(v);
-          setGroupMembers([]);
-          setMsg("");
-          if (v) {
-            try {
-              await loadGroupMembers(Number(v));
-            } catch {
-              setMsg("Failed to load group members");
-            }
-          }
-        }}
-      >
-        <option value="">Select group</option>
-        {groups.map((g) => (
-          <option key={g.id} value={String(g.id)}>
-            {g.name} (vehicle: {g.vehicle_name})
-          </option>
-        ))}
-      </select>
-
-      {selectedGroupId && (
-        <>
-          <p style={{ marginTop: 8 }}>
-            Selected group: <b>{selectedGroup?.name}</b>{" "}
-            {selectedGroup ? (
-              <>
-                — vehicle cap <b>{selectedGroup.capacity}</b>
-              </>
-            ) : null}
-          </p>
-
-          <h4>Current members</h4>
-          {groupMembers.length === 0 ? (
-            <p>No members yet.</p>
-          ) : (
-            <ul>
-              {groupMembers.map((m) => (
-                <li key={m.user_id} style={{ marginBottom: 6 }}>
-                  #{m.pickup_order} — {m.name} {m.surname} ({m.email}){" "}
-                  {m.is_driver ? <b>DRIVER</b> : null}
-                  <button style={{ marginLeft: 8 }} onClick={() => removeMember(m.user_id)}>
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <h4>Add employee</h4>
-          <form onSubmit={addMember}>
-            <select
-              value={assignForm.user_id}
-              onChange={(e) => setAssignForm((p) => ({ ...p, user_id: e.target.value }))}
-            >
-              <option value="">Select employee (unassigned)</option>
-              {employees.map((u) => (
-                <option key={u.user_id} value={String(u.user_id)}>
-                  {u.surname} {u.name} ({u.email}) {u.has_drivers_licence ? "🚗" : ""}
-                </option>
-              ))}
-            </select>
-            <br />
-
-            <input
-              type="number"
-              min={1}
-              value={assignForm.pickup_order}
-              onChange={(e) => setAssignForm((p) => ({ ...p, pickup_order: Number(e.target.value) }))}
-            />
-            <br />
-
-            <label>
-              <input
-                type="checkbox"
-                checked={assignForm.is_driver}
-                onChange={(e) => setAssignForm((p) => ({ ...p, is_driver: e.target.checked }))}
-              />
-              Set as driver
-            </label>
-            <br />
-
-            <button type="submit" disabled={!assignForm.user_id}>
-              Add to group
-            </button>
+          <form className="row g-2 mb-3" onSubmit={createVehicle}>
+            <div className="col-md-4">
+              <input className="form-control" placeholder="Name" value={vehicleForm.name}
+                onChange={(e) => setVehicleForm(p => ({ ...p, name: e.target.value }))} />
+            </div>
+            <div className="col-md-4">
+              <input className="form-control" placeholder="License plate" value={vehicleForm.license_plate}
+                onChange={(e) => setVehicleForm(p => ({ ...p, license_plate: e.target.value }))} />
+            </div>
+            <div className="col-md-2">
+              <input type="number" className="form-control" value={vehicleForm.capacity}
+                onChange={(e) => setVehicleForm(p => ({ ...p, capacity: Number(e.target.value) }))} />
+            </div>
+            <div className="col-md-2">
+              <button className="btn btn-primary w-100">Add vehicle</button>
+            </div>
           </form>
 
-          <p style={{ marginTop: 8, fontSize: 12 }}>
-            Tip: If you need to change pickup order later, remove and re-add the employee with the new order.
-          </p>
-        </>
-      )}
+          <table className="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Plate</th>
+                <th>Capacity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vehicles.map(v => (
+                <tr key={v.id}>
+                  <td>{v.name}</td>
+                  <td>{v.license_plate}</td>
+                  <td>{v.capacity}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Route Groups */}
+      <div className="card shadow-sm mb-4">
+        <div className="card-body">
+          <h5 className="card-title">Route Groups</h5>
+
+          <form className="row g-2 mb-3" onSubmit={createGroup}>
+            <div className="col-md-4">
+              <input className="form-control" placeholder="Group name"
+                value={groupForm.name}
+                onChange={(e) => setGroupForm(p => ({ ...p, name: e.target.value }))} />
+            </div>
+            <div className="col-md-4">
+              <select className="form-select" value={groupForm.vehicle_id}
+                onChange={(e) => setGroupForm(p => ({ ...p, vehicle_id: e.target.value }))}>
+                <option value="">Select vehicle</option>
+                {vehicles.map(v => (
+                  <option key={v.id} value={v.id}>{v.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-3">
+              <select className="form-select" value={groupForm.company_location_id}
+                onChange={(e) => setGroupForm(p => ({ ...p, company_location_id: e.target.value }))}>
+                <option value="">Company location</option>
+                {locations.map(l => (
+                  <option key={l.id} value={l.id}>{l.city}, {l.street}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-1">
+              <button className="btn btn-primary w-100">Add</button>
+            </div>
+          </form>
+
+          <table className="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Vehicle</th>
+                <th>Capacity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groups.map(g => (
+                <tr key={g.id}>
+                  <td>{g.name}</td>
+                  <td>{g.vehicle_name}</td>
+                  <td>{g.capacity}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Group Members */}
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h5 className="card-title">Group Members</h5>
+
+          <select className="form-select mb-3"
+            value={selectedGroupId}
+            onChange={async (e) => {
+              setSelectedGroupId(e.target.value);
+              if (e.target.value) await loadGroupMembers(Number(e.target.value));
+            }}>
+            <option value="">Select group</option>
+            {groups.map(g => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+
+          {selectedGroup && (
+            <>
+              <table className="table table-sm">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Driver</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupMembers.map(m => (
+                    <tr key={m.user_id}>
+                      <td>{m.pickup_order}</td>
+                      <td>{m.name} {m.surname}</td>
+                      <td>{m.email}</td>
+                      <td>{m.is_driver ? "🚗" : ""}</td>
+                      <td>
+                        <button className="btn btn-sm btn-outline-danger"
+                          onClick={() => removeMember(m.user_id)}>
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <form className="row g-2 mt-3" onSubmit={addMember}>
+                <div className="col-md-5">
+                  <select className="form-select"
+                    value={assignForm.user_id}
+                    onChange={(e) => setAssignForm(p => ({ ...p, user_id: e.target.value }))}>
+                    <option value="">Select employee</option>
+                    {employees.map(u => (
+                      <option key={u.user_id} value={u.user_id}>
+                        {u.surname} {u.name} {u.has_drivers_licence ? "🚗" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-md-2">
+                  <input type="number" min={1} className="form-control"
+                    value={assignForm.pickup_order}
+                    onChange={(e) => setAssignForm(p => ({ ...p, pickup_order: Number(e.target.value) }))} />
+                </div>
+                <div className="col-md-3 d-flex align-items-center">
+                  <input type="checkbox" className="form-check-input me-2"
+                    checked={assignForm.is_driver}
+                    onChange={(e) => setAssignForm(p => ({ ...p, is_driver: e.target.checked }))} />
+                  Driver
+                </div>
+                <div className="col-md-2">
+                  <button className="btn btn-success w-100" disabled={!assignForm.user_id}>
+                    Add
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

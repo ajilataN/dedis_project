@@ -67,78 +67,176 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "40px auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2>Admin Dashboard</h2>
-        <button onClick={logout}>Logout</button>
+    <div className="container py-4" style={{ maxWidth: 1100 }}>
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="mb-1">Admin Dashboard</h2>
+          <div className="text-muted">
+            Logged in as <b>{user?.name} {user?.surname}</b> ({user?.email})
+          </div>
+        </div>
+        <button className="btn btn-outline-secondary" onClick={logout}>
+          Logout
+        </button>
       </div>
 
-      <p>
-        Logged in as <b>{user?.name} {user?.surname}</b> ({user?.email})
-      </p>
+      {msg && (
+        <div className={`alert ${msg.toLowerCase().includes("fail") ? "alert-danger" : "alert-success"} py-2`}>
+          {msg}
+        </div>
+      )}
 
-      <hr />
-
-      <h3>Company</h3>
       {!company ? (
-        <p>Loading...</p>
+        <div className="text-muted">Loading company overview...</div>
       ) : (
         <>
-          <p>
-            <b>{company.name}</b> (id={company.id})
-          </p>
+          {/* Company summary */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+              <div>
+                <div className="text-muted small">Company</div>
+                <div className="h5 mb-0">{company.name}</div>
+              </div>
 
-          <div style={{ display: "flex", gap: 16 }}>
-            <div style={{ flex: 1 }}>
-              <h4>Company locations</h4>
-              {locations.length === 0 ? (
-                <p>No locations yet.</p>
-              ) : (
-                <ul>
-                  {locations.map((l) => (
-                    <li key={l.id}>
-                      {l.country}, {l.city} {l.postal_code}, {l.street} {l.street_number}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div style={{ flex: 1 }}>
-              <h4>Add another location</h4>
-              <form onSubmit={addLocation}>
-                <input name="country" placeholder="Country" value={locForm.country} onChange={onLocChange} />
-                <br />
-                <input name="city" placeholder="City" value={locForm.city} onChange={onLocChange} />
-                <br />
-                <input name="postal_code" placeholder="Postal code" value={locForm.postal_code} onChange={onLocChange} />
-                <br />
-                <input name="street" placeholder="Street" value={locForm.street} onChange={onLocChange} />
-                <br />
-                <input
-                  name="street_number"
-                  placeholder="Street number"
-                  value={locForm.street_number}
-                  onChange={onLocChange}
-                />
-                <br />
-                <button type="submit">Add location</button>
-              </form>
-              {msg && <p style={{ color: msg.includes("Failed") ? "crimson" : "green" }}>{msg}</p>}
+              <div className="d-flex gap-2 flex-wrap">
+                <Link to="/admin/requests" className="btn btn-primary">
+                  Requests & Members
+                </Link>
+                <Link to="/admin/transport" className="btn btn-outline-primary">
+                  Vehicles & Route Groups
+                </Link>
+              </div>
             </div>
           </div>
 
-          <hr />
+          <div className="row g-4">
+            {/* Locations list */}
+            <div className="col-12 col-lg-7">
+              <div className="card shadow-sm h-100">
+                <div className="card-body">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="card-title mb-0">Company locations</h5>
+                    <span className="badge bg-dark">{locations.length}</span>
+                  </div>
 
-          <h3>Admin actions</h3>
-          <ul>
-            <li>
-              <Link to="/admin/requests">Pending requests & employees</Link>
-            </li>
-            <li>
-              <Link to="/admin/transport">Vehicles & route groups</Link>
-            </li>
-          </ul>
+                  {locations.length === 0 ? (
+                    <div className="alert alert-info mb-0">No locations yet. Add your first location.</div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-striped table-hover align-middle mb-0">
+                        <thead className="table-light">
+                          <tr>
+                            <th>City</th>
+                            <th>Address</th>
+                            <th>Postal</th>
+                            <th>Country</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {locations.map((l) => (
+                            <tr key={l.id}>
+                              <td className="fw-semibold">{l.city}</td>
+                              <td className="text-muted">
+                                {l.street} {l.street_number}
+                              </td>
+                              <td>{l.postal_code}</td>
+                              <td>{l.country}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <div className="form-text mt-2">
+                    Locations are used when creating route groups (office/HQ selection).
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Add location form */}
+            <div className="col-12 col-lg-5">
+              <div className="card shadow-sm">
+                <div className="card-body">
+                  <h5 className="card-title mb-3">Add another location</h5>
+
+                  <form onSubmit={addLocation}>
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label">Country</label>
+                        <input
+                          className="form-control"
+                          name="country"
+                          value={locForm.country}
+                          onChange={onLocChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">City</label>
+                        <input
+                          className="form-control"
+                          name="city"
+                          value={locForm.city}
+                          onChange={onLocChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-5">
+                        <label className="form-label">Postal code</label>
+                        <input
+                          className="form-control"
+                          name="postal_code"
+                          value={locForm.postal_code}
+                          onChange={onLocChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-5">
+                        <label className="form-label">Street</label>
+                        <input
+                          className="form-control"
+                          name="street"
+                          value={locForm.street}
+                          onChange={onLocChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-2">
+                        <label className="form-label">No.</label>
+                        <input
+                          className="form-control"
+                          name="street_number"
+                          value={locForm.street_number}
+                          onChange={onLocChange}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <button className="btn btn-success w-100 mt-3" type="submit">
+                      Add location
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <div className="alert alert-light border mt-3 mb-0">
+                <div className="fw-semibold mb-1">Next steps</div>
+                <ul className="mb-0">
+                  <li>Approve employee join requests</li>
+                  <li>Create vehicles and route groups</li>
+                  <li>Assign employees to groups + pickup order</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>
