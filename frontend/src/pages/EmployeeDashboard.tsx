@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 type Company = { id: number; name: string };
 
 export default function EmployeeDashboard() {
-  const { user, membership, setMembership, logout } = useAuth();
+  const { user, membership, setMembership } = useAuth();
   const [q, setQ] = useState("");
   const [results, setResults] = useState<Company[]>([]);
   const [msg, setMsg] = useState("");
@@ -54,9 +54,6 @@ export default function EmployeeDashboard() {
             Welcome, <b>{user?.name} {user?.surname}</b>
           </div>
         </div>
-        <button className="btn btn-outline-secondary" onClick={logout}>
-          Logout
-        </button>
       </div>
 
       {/* Feedback */}

@@ -30,7 +30,7 @@ const emptyLocation = (): Omit<Location, "id"> => ({
 });
 
 export default function AdminDashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [locForm, setLocForm] = useState(emptyLocation());
@@ -76,9 +76,6 @@ export default function AdminDashboard() {
             Logged in as <b>{user?.name} {user?.surname}</b> ({user?.email})
           </div>
         </div>
-        <button className="btn btn-outline-secondary" onClick={logout}>
-          Logout
-        </button>
       </div>
 
       {msg && (
