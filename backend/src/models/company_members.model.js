@@ -24,10 +24,18 @@ async function findMembership(company_id, user_id, executor = db) {
 
 async function findByUserId(user_id, executor = db) {
   const [rows] = await executor.query(
-    `SELECT company_id, user_id, role, status, requested_at, approved_at
-     FROM company_members
-     WHERE user_id = ?
-     ORDER BY requested_at DESC
+    `SELECT
+        cm.company_id,
+        c.name AS company_name,
+        cm.user_id,
+        cm.role,
+        cm.status,
+        cm.requested_at,
+        cm.approved_at
+     FROM company_members cm
+     JOIN companies c ON c.id = cm.company_id
+     WHERE cm.user_id = ?
+     ORDER BY cm.requested_at DESC
      LIMIT 1`,
     [user_id]
   );

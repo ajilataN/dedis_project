@@ -7,12 +7,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# =========================
-# Environment variables
-# =========================
-.env
-.env.*
-!.env.example
+# # =========================
+# # Environment variables
+# # =========================
+# .env
+# .env.*
+# !.env.example
 
 # =========================
 # Build outputs
