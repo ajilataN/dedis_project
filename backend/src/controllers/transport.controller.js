@@ -1,11 +1,11 @@
-const transportService = require("../services/transport.service");
+const transportFacade = require("../services/transport.facade");
 
 // vehicles
 async function createVehicle(req, res, next) {
   try {
     const { name, license_plate, capacity } = req.body;
 
-    const id = await transportService.createVehicle({
+    const id = await transportFacade.createVehicle({
       companyId: req.companyId,
       name,
       license_plate,
@@ -20,7 +20,7 @@ async function createVehicle(req, res, next) {
 
 async function listVehicles(req, res, next) {
   try {
-    const vehicles = await transportService.listVehicles({
+    const vehicles = await transportFacade.listVehicles({
       companyId: req.companyId,
     });
     res.json({ vehicles });
@@ -34,7 +34,7 @@ async function createRouteGroup(req, res, next) {
   try {
     const { vehicle_id, company_location_id, name } = req.body;
 
-    const id = await transportService.createRouteGroup({
+    const id = await transportFacade.createRouteGroup({
       companyId: req.companyId,
       vehicle_id: Number(vehicle_id),
       company_location_id: Number(company_location_id),
@@ -49,7 +49,7 @@ async function createRouteGroup(req, res, next) {
 
 async function listRouteGroups(req, res, next) {
   try {
-    const groups = await transportService.listRouteGroups({
+    const groups = await transportFacade.listRouteGroups({
       companyId: req.companyId,
     });
     res.json({ groups });
@@ -64,7 +64,7 @@ async function addGroupMember(req, res, next) {
     const group_id = Number(req.params.groupId);
     const { user_id, pickup_order, is_driver } = req.body;
 
-    await transportService.addMemberToGroup({
+    await transportFacade.addMemberToGroup({
       companyId: req.companyId,
       group_id,
       user_id: Number(user_id),
@@ -82,7 +82,7 @@ async function listGroupMembers(req, res, next) {
   try {
     const group_id = Number(req.params.groupId);
 
-    const members = await transportService.listGroupMembers({
+    const members = await transportFacade.listGroupMembers({
       companyId: req.companyId,
       group_id,
     });
@@ -98,7 +98,7 @@ async function removeGroupMember(req, res, next) {
     const group_id = Number(req.params.groupId);
     const user_id = Number(req.params.userId);
 
-    await transportService.removeMemberFromGroup({
+    await transportFacade.removeMemberFromGroup({
       companyId: req.companyId,
       group_id,
       user_id,
