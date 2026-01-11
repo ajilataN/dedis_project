@@ -101,14 +101,14 @@ export default function Register() {
 
         const res = await api.post("/auth/register-employee", payload);
         login(res.data);
-        nav("/dashboard");
+        nav("/employee");
         return;
       }
 
       const payload: CompanyAdminRegisterForm = form;
       const res = await api.post("/auth/register-company", payload);
       login(res.data);
-      nav("/dashboard");
+      nav("/admin");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.message || "Register failed");
